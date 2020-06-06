@@ -13,7 +13,7 @@
 
   <p align="center">
     <b>decentragit</b> is an open-source project built by <a href="https://www.tupelo.org/">Quorum Control</a> which combines
-    the power of <br>git, the <a href="https://docs.tupelo.org/">Tupelo DLT</a> and <a href="https://siasky.net/">Skynet</a> from Sia.  <br>
+    the power of <br>git, the <a href="https://docs.tupelo.org/">Tupelo DLT</a> and <a href="https://scp.techandsupply.ca/">Public Portals</a> from ScPrime.  <br>
     <b>decentragit</b> uses decentralized ownership and storage to make it trivial to
     create a decentralized, shareable git remote of your project.<br>
     <b>decentragit</b> accomplishes this without changing your GitHub workflow except that you can keep collaborating when it goes down.<br>
@@ -41,7 +41,7 @@ git dg init
 This command does three things.<br>
 1. <b>decentragit</b> sets the appropriate remote urls in your repo's .git/config file.<br>
 2. <b>decentragit</b> creates a [ChainTree](https://docs.tupelo.org/docs/chaintree.html) which gets signed by the Tupelo DLT to specify ownership of the decentralized repo.<br>
-3. <b>decentragit</b> stores that repo on Skynet, the decentralized storage solution from Sia. 
+3. <b>decentragit</b> stores that repo on Public Portals, the decentralized storage solution from ScPrime. 
 
 From there you can proceed with normal git commands.<br>
 
@@ -78,7 +78,7 @@ You can find answers to some of the most [frequently asked questions on the wiki
 
 * [Git](https://git-scm.com/)
 * [Tupelo DLT](https://docs.tupelo.org/)
-* [Skynet](https://siasky.net/)
+* [Public Portals](https://scp.techandsupply.ca/)
 
 ### Building
 - Clone this repo.
