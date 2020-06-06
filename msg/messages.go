@@ -83,7 +83,7 @@ Your decentragit repo has been created at {{.repo | bold | yellow}}.
 
 decentragit repo identities and authorizations are secured by Tupelo - this repo's unique id is {{.did | bold | yellow}}.
 
-Storage of the repo is backed by Sia Skynet.
+Storage of the repo is backed by ScPrime Public Portals.
 `
 
 var RepoNotFound = `
