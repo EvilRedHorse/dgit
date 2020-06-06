@@ -1,10 +1,10 @@
-package siaskynet
+package siapubaccess
 
 import (
 	"io"
 	"sync"
 
-	"github.com/NebulousLabs/go-skynet"
+	"github.com/EvilRedHorse/go-pubaccess"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/format/objfile"
 	"github.com/quorumcontrol/dgit/storage"
@@ -23,7 +23,7 @@ type downloadJob struct {
 	err    chan error
 }
 
-type Skynet struct {
+type Pubaccess struct {
 	sync.RWMutex
 
 	uploaderCount      int
@@ -36,8 +36,8 @@ type Skynet struct {
 	log *zap.SugaredLogger
 }
 
-func InitSkynet(uploaderCount, downloaderCount int) *Skynet {
-	return &Skynet{
+func InitPubaccess(uploaderCount, downloaderCount int) *Pubaccess {
+	return &Pubaccess{
 		uploaderCount:   uploaderCount,
 		downloaderCount: downloaderCount,
 		uploadJobs:      make(chan *uploadJob),
@@ -46,23 +46,23 @@ func InitSkynet(uploaderCount, downloaderCount int) *Skynet {
 	}
 }
 
-func (s *Skynet) uploadObject(o plumbing.EncodedObject) (string, error) {
+func (s *Pubaccess) uploadObject(o plumbing.EncodedObject) (string, error) {
 	buf, err := storage.ZlibBufferForObject(o)
 	if err != nil {
 		return "", err
 	}
 
-	uploadData := make(skynet.UploadData)
+	uploadData := make(pubaccess.UploadData)
 	uploadData[o.Hash().String()] = buf
 
-	link, err := skynet.Upload(uploadData, skynet.DefaultUploadOptions)
+	link, err := pubaccess.Upload(uploadData, pubaccess.DefaultUploadOptions)
 
 	return link, nil
 }
 
-func (s *Skynet) startUploader() {
+func (s *Pubaccess) startUploader() {
 	for j := range s.uploadJobs {
-		s.log.Debugf("uploading %s to Skynet", j.o.Hash())
+		s.log.Debugf("uploading %s to Public Portals", j.o.Hash())
 		link, err := s.uploadObject(j.o)
 		if err != nil {
 			j.err <- err
@@ -72,7 +72,7 @@ func (s *Skynet) startUploader() {
 	}
 }
 
-func (s *Skynet) startUploaders() {
+func (s *Pubaccess) startUploaders() {
 	s.log.Debugf("starting %d uploader(s)", s.uploaderCount)
 
 	for i := 0; i < s.uploaderCount; i++ {
@@ -80,7 +80,7 @@ func (s *Skynet) startUploaders() {
 	}
 }
 
-func (s *Skynet) UploadObject(o plumbing.EncodedObject) (chan string, chan error) {
+func (s *Pubaccess) UploadObject(o plumbing.EncodedObject) (chan string, chan error) {
 	s.Lock()
 	if !s.uploadersStarted {
 		s.startUploaders()
@@ -100,8 +100,8 @@ func (s *Skynet) UploadObject(o plumbing.EncodedObject) (chan string, chan error
 	return result, err
 }
 
-func (s *Skynet) downloadObject(link string) (plumbing.EncodedObject, error) {
-	objData, err := skynet.Download(link, skynet.DefaultDownloadOptions)
+func (s *Pubaccess) downloadObject(link string) (plumbing.EncodedObject, error) {
+	objData, err := pubaccess.Download(link, pubaccess.DefaultDownloadOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +129,9 @@ func (s *Skynet) downloadObject(link string) (plumbing.EncodedObject, error) {
 	return o, nil
 }
 
-func (s *Skynet) startDownloader() {
+func (s *Pubaccess) startDownloader() {
 	for j := range s.downloadJobs {
-		s.log.Debugf("downloading %s from Skynet", j.link)
+		s.log.Debugf("downloading %s from Public Portals", j.link)
 		o, err := s.downloadObject(j.link)
 		if err != nil {
 			j.err <- err
@@ -141,7 +141,7 @@ func (s *Skynet) startDownloader() {
 	}
 }
 
-func (s *Skynet) startDownloaders() {
+func (s *Pubaccess) startDownloaders() {
 	s.log.Debugf("starting %d downloader(s)", s.downloaderCount)
 
 	for i := 0; i < s.downloaderCount; i++ {
@@ -149,7 +149,7 @@ func (s *Skynet) startDownloaders() {
 	}
 }
 
-func (s *Skynet) DownloadObject(link string) (chan plumbing.EncodedObject, chan error) {
+func (s *Pubaccess) DownloadObject(link string) (chan plumbing.EncodedObject, chan error) {
 	s.Lock()
 	if !s.downloadersStarted {
 		s.startDownloaders()
