@@ -1,4 +1,4 @@
-package siaskynet
+package siapubaccess
 
 import (
 	"fmt"
@@ -20,12 +20,12 @@ import (
 
 const TupeloTxnBatchSize = 75
 
-var log = logging.Logger("decentragit.storage.siaskynet")
+var log = logging.Logger("decentragit.storage.pubaccess")
 
 type ObjectStorage struct {
 	*storage.ChaintreeObjectStorage
 	log    *zap.SugaredLogger
-	skynet *Skynet
+	pubaccess *Pubaccess
 }
 
 var _ storer.EncodedObjectStorer = (*ObjectStorage)(nil)
@@ -37,19 +37,19 @@ func NewObjectStorage(config *storage.Config) storer.EncodedObjectStorer {
 	return &ObjectStorage{
 		&storage.ChaintreeObjectStorage{config},
 		log.Named(did[len(did)-6:]),
-		InitSkynet(4, 1),
+		InitPubaccess(4, 1),
 	}
 }
 
-type SkylinkStore map[plumbing.Hash]string
+type PublinkStore map[plumbing.Hash]string
 
 type TemporalStorage struct {
 	sync.RWMutex
 	uploadWaitGroup sync.WaitGroup
 
 	log      *zap.SugaredLogger
-	skylinks SkylinkStore
-	skynet   *Skynet
+	publinks PublinkStore
+	publink   *Pubaccess
 }
 
 type ChaintreeLinkStorage struct {
@@ -59,26 +59,26 @@ type ChaintreeLinkStorage struct {
 
 func NewTemporalStorage() *TemporalStorage {
 	return &TemporalStorage{
-		log:      log.Named("skynet-temporal"),
-		skylinks: make(SkylinkStore),
-		skynet:   InitSkynet(4, 1),
+		log:      log.Named("pubaccess-temporal"),
+		publinks: make(PublinkStore),
+		pubnet:   InitPubaccess(4, 1),
 	}
 }
 
-func (ts *TemporalStorage) SetSkylink(h plumbing.Hash, link string) {
+func (ts *TemporalStorage) SetPublink(h plumbing.Hash, link string) {
 	ts.Lock()
 	defer ts.Unlock()
 
-	ts.skylinks[h] = link
+	ts.publinks[h] = link
 }
 
-func (ts *TemporalStorage) Skylinks() SkylinkStore {
-	sls := make(SkylinkStore)
+func (ts *TemporalStorage) Publinks() PublinkStore {
+	sls := make(PublinkStore)
 
 	ts.RLock()
 	defer ts.RUnlock()
 
-	for h, l := range ts.skylinks {
+	for h, l := range ts.publinks {
 		sls[h] = l
 	}
 
@@ -93,7 +93,7 @@ func NewChaintreeLinkStorage(config *storage.Config) *ChaintreeLinkStorage {
 	}
 }
 
-func uploadObjectToSkynet(s *Skynet, o plumbing.EncodedObject) (string, error) {
+func uploadObjectToPubaccess(s *Pubaccess, o plumbing.EncodedObject) (string, error) {
 	resultC, errC := s.UploadObject(o)
 
 	select {
@@ -105,19 +105,19 @@ func uploadObjectToSkynet(s *Skynet, o plumbing.EncodedObject) (string, error) {
 }
 
 func (ts *TemporalStorage) SetEncodedObject(o plumbing.EncodedObject) (plumbing.Hash, error) {
-	ts.log.Debugf("uploading %s to Skynet", o.Hash())
+	ts.log.Debugf("uploading %s to Public Portals", o.Hash())
 
 	objHash := o.Hash()
 
 	ts.uploadWaitGroup.Add(1)
 	go func() {
-		link, err := uploadObjectToSkynet(ts.skynet, o)
+		link, err := uploadObjectToPubaccess(ts.pubaccess, o)
 		if err != nil {
 			ts.log.Errorf("object %s upload failed: %w", objHash, err)
 			return
 		}
 
-		ts.SetSkylink(objHash, link)
+		ts.SetPublink(objHash, link)
 
 		ts.uploadWaitGroup.Done()
 	}()
@@ -125,7 +125,7 @@ func (ts *TemporalStorage) SetEncodedObject(o plumbing.EncodedObject) (plumbing.
 	return objHash, nil
 }
 
-func downloadObjectFromSkynet(s *Skynet, link string) (plumbing.EncodedObject, error) {
+func downloadObjectFromPubaccess(s *Pubaccess, link string) (plumbing.EncodedObject, error) {
 	resultC, errC := s.DownloadObject(link)
 
 	select {
@@ -149,7 +149,7 @@ func (s *ObjectStorage) Begin() storer.Transaction {
 	ls := NewChaintreeLinkStorage(s.Config)
 	return &ObjectTransaction{
 		// NB: Currently TemporalStorage uploads objects to
-		// skynet as they are added to the txn. This makes sense while it's
+		// public portals as they are added to the txn. This makes sense while it's
 		// free, but perhaps less so once it isn't. It still might make sense
 		// perf-wise, but you'd want to clean up on Rollback / error to stop
 		// paying for those uploads.
@@ -174,15 +174,15 @@ func (ot *ObjectTransaction) Commit() error {
 
 	var tupeloTxns []*transactions.Transaction
 
-	// make sure all pending uploads have completed and set their skylinks
-	ot.log.Debugf("waiting for all Skynet uploads to complete")
+	// make sure all pending uploads have completed and set their publinks
+	ot.log.Debugf("waiting for all Public Portal uploads to complete")
 	ot.temporal.uploadWaitGroup.Wait()
-	ot.log.Debugf("Skynet uploads complete")
+	ot.log.Debugf("Public Portal uploads complete")
 
-	skylinks := ot.temporal.Skylinks()
+	publinks := ot.temporal.Publinks()
 
-	for h, link := range skylinks {
-		txn, err := setLinkTxn(h, strings.Replace(link, "sia://", "did:sia:", 1))
+	for h, link := range publinks {
+		txn, err := setLinkTxn(h, strings.Replace(link, "scp://", "did:scp:", 1))
 		if err != nil {
 			return err
 		}
@@ -190,14 +190,14 @@ func (ot *ObjectTransaction) Commit() error {
 		tupeloTxns = append(tupeloTxns, txn)
 	}
 
-	if len(skylinks) > 0 {
+	if len(publinks) > 0 {
 		txnBatch := make([]*transactions.Transaction, 0)
 		lastIdx := len(tupeloTxns) - 1
 		for i, t := range tupeloTxns {
 			batchIdx := (i + 1) % TupeloTxnBatchSize
 			txnBatch = append(txnBatch, t)
 			if batchIdx == 0 || i == lastIdx {
-				ot.log.Debugf("saving %d Skylinks in transaction to repo chaintree", len(txnBatch))
+				ot.log.Debugf("saving %d Publinks in transaction to repo chaintree", len(txnBatch))
 				_, err := ot.storage.Tupelo.PlayTransactions(ot.storage.Ctx, ot.storage.ChainTree, ot.storage.PrivateKey, txnBatch)
 				if err != nil {
 					return err
@@ -239,14 +239,14 @@ func (s *ObjectStorage) SetEncodedObject(o plumbing.EncodedObject) (plumbing.Has
 		return plumbing.ZeroHash, plumbing.ErrInvalidType
 	}
 
-	s.log.Debugf("uploading %s to Skynet", o.Hash().String())
-	link, err := uploadObjectToSkynet(s.skynet, o)
+	s.log.Debugf("uploading %s to Public Portals", o.Hash().String())
+	link, err := uploadObjectToPubaccess(s.pubaccess, o)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
 
-	skylink := strings.TrimPrefix(link, "sia://")
-	objDid := strings.Join([]string{"did", "sia", skylink}, ":")
+	publink := strings.TrimPrefix(link, "scp://")
+	objDid := strings.Join([]string{"did", "scp", publink}, ":")
 
 	tx, err := setLinkTxn(o.Hash(), objDid)
 	if err != nil {
@@ -301,17 +301,17 @@ func (s *ObjectStorage) EncodedObject(t plumbing.ObjectType, h plumbing.Hash) (p
 		s.log.Errorf("object DID should be a string; was a %T instead", valUncast)
 		return nil, plumbing.ErrObjectNotFound
 	}
-	if !strings.HasPrefix(objDid, "did:sia:") {
-		s.log.Errorf("object DID %s should start with did:sia:", objDid)
+	if !strings.HasPrefix(objDid, "did:scp:") {
+		s.log.Errorf("object DID %s should start with did:scp:", objDid)
 		return nil, plumbing.ErrObjectNotFound
 	}
 
-	link := strings.Replace(objDid, "did:sia:", "sia://", 1)
+	link := strings.Replace(objDid, "did:scp:", "scp://", 1)
 
-	s.log.Debugf("downloading %s from Skynet at %s", h, link)
-	o, err := downloadObjectFromSkynet(s.skynet, link)
+	s.log.Debugf("downloading %s from Public Portals at %s", h, link)
+	o, err := downloadObjectFromPubaccess(s.pubaccess, link)
 	if err != nil {
-		err = fmt.Errorf("could not download object %s from Skynet at %s: %w", h.String(), link, err)
+		err = fmt.Errorf("could not download object %s from Public Portals at %s: %w", h.String(), link, err)
 		s.log.Errorf(err.Error())
 		return nil, err
 	}
