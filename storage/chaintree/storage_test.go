@@ -13,8 +13,8 @@ import (
 	gitstorage "github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/test"
 
-	"github.com/quorumcontrol/dgit/storage"
-	"github.com/quorumcontrol/dgit/tupelo/clientbuilder"
+	"github.com/EvilRedHorse/dgit/storage"
+	"github.com/EvilRedHorse/dgit/tupelo/clientbuilder"
 )
 
 func Test(t *testing.T) { TestingT(t) }
