@@ -9,7 +9,7 @@ import (
 	"github.com/quorumcontrol/chaintree/dag"
 
 	"github.com/quorumcontrol/dgit/storage"
-	"github.com/quorumcontrol/dgit/storage/siaskynet"
+	"github.com/quorumcontrol/dgit/storage/siapubaccess"
 
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	gitstorage "github.com/go-git/go-git/v5/storage"
@@ -41,8 +41,8 @@ func NewStorage(config *storage.Config) (gitstorage.Storer, error) {
 	switch objStorageProvider {
 	case "chaintree":
 		objStorage = NewObjectStorage(config)
-	case "siaskynet":
-		objStorage = siaskynet.NewObjectStorage(config)
+	case "siapubaccess":
+		objStorage = siapubaccess.NewObjectStorage(config)
 	default:
 		return nil, fmt.Errorf("unknown object storage type: %s", objStorageProvider)
 	}
