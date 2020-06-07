@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/quorumcontrol/dgit/storage"
+	"github.com/EvilRedHorse/dgit/storage"
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/format/objfile"
