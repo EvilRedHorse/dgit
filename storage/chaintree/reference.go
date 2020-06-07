@@ -12,7 +12,7 @@ import (
 	"github.com/quorumcontrol/messages/v2/build/go/transactions"
 	"go.uber.org/zap"
 
-	"github.com/quorumcontrol/dgit/storage"
+	"github.com/EvilRedHorse/dgit/storage"
 )
 
 type ReferenceStorage struct {
