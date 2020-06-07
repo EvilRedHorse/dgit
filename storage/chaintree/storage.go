@@ -8,8 +8,8 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/quorumcontrol/chaintree/dag"
 
-	"github.com/quorumcontrol/dgit/storage"
-	"github.com/quorumcontrol/dgit/storage/siapubaccess"
+	"github.com/EvilRedHorse/dgit/storage"
+	"github.com/EvilRedHorse/dgit/storage/siapubaccess"
 
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	gitstorage "github.com/go-git/go-git/v5/storage"
