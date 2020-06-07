@@ -20,7 +20,7 @@ import (
 
 const TupeloTxnBatchSize = 75
 
-var log = logging.Logger("decentragit.storage.pubaccess")
+var log = logging.Logger("decentragit.storage.siapubaccess")
 
 type ObjectStorage struct {
 	*storage.ChaintreeObjectStorage
@@ -49,7 +49,7 @@ type TemporalStorage struct {
 
 	log      *zap.SugaredLogger
 	publinks PublinkStore
-	publink   *Pubaccess
+	publink  *Pubaccess
 }
 
 type ChaintreeLinkStorage struct {
@@ -61,7 +61,7 @@ func NewTemporalStorage() *TemporalStorage {
 	return &TemporalStorage{
 		log:      log.Named("pubaccess-temporal"),
 		publinks: make(PublinkStore),
-		pubnet:   InitPubaccess(4, 1),
+		publink:   InitPubaccess(4, 1),
 	}
 }
 
