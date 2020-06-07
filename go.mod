@@ -4,7 +4,7 @@ go 1.13
 
 replace (
 	github.com/99designs/keyring => github.com/quorumcontrol/keyring v1.1.5-0.20200324201224-62c57642bc6f
-	github.com/EvilRedHorse/go-pubaccess => github.com/quorumcontrol/go-pubaccess v0.0.0-20200525000001-33a3f5b8790a0e747510a8c5eecf41c35360a42b
+	github.com/EvilRedHorse/go-pubaccess => github.com/quorumcontrol/go-pubaccess v0.0.1
 	github.com/go-critic/go-critic => github.com/go-critic/go-critic v0.4.0
 	github.com/go-git/go-git/v5 => github.com/quorumcontrol/go-git/v5 v5.0.1-0.20200406172056-231a188e4899
 	github.com/golangci/errcheck => github.com/golangci/errcheck v0.0.0-20181223084120-ef45e06d44b6
@@ -19,7 +19,7 @@ replace (
 
 require (
 	github.com/99designs/keyring v1.1.4
-	github.com/EvilRedHorse/go-pubaccess v0.0.0-20200525000001-33a3f5b8790a0e747510a8c5eecf41c35360a42b
+	github.com/EvilRedHorse/go-pubaccess v0.0.1
 	github.com/allegro/bigcache v1.2.1 // indirect
 	github.com/aristanetworks/goarista v0.0.0-20200409192631-afcb3fffc5ea // indirect
 	github.com/btcsuite/btcd v0.20.1-beta
