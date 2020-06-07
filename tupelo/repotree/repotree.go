@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	DefaultObjectStorageType = "siaskynet"
+	DefaultObjectStorageType = "siapubaccess"
 )
 
 var log = logging.Logger("decentragit.repotree")
